@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altura Cortex - Predictive AI Engine</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-red: #e3000f;
+            --brand-dark: #0f172a; /* Slate 900 */
+            --panel-bg: #1e293b; /* Slate 800 */
+            --neon-red: #ff3333;
+            --neon-green: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-dark);
+            color: #f8fafc;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+
+        /* Panel Styling */
+        .glass-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Pulsing UI Elements */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.green { background-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+        .status-dot.red { 
+            background-color: var(--brand-red); 
+            box-shadow: 0 0 15px var(--brand-red); 
+            animation: pulse-red 1s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* AI Processing Loader */
+        .ai-loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid var(--brand-red);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Smooth UI Transitions */
+        .transition-all { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hide { display: none !important; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--brand-dark); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <nav class="bg-slate-900 border-b border-slate-700 px-6 py-3 flex justify-between items-center z-10 shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-lg text-white">a</div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white leading-tight">Altura Cortex</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Predictive Volatility Engine v3.0</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 text-sm font-medium">
+            <span class="flex items-center gap-2"><div class="status-dot green" id="global-status"></div> System Online</span>
+            <span class="text-slate-500 hidden md:inline">|</span>
+            <span class="text-slate-300 hidden md:inline">Target: HVH Segment</span>
+            <span class="text-slate-500 hidden md:inline">|</span>
+            <a href="index.html" class="text-slate-200 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1 rounded transition text-xs font-bold" title="Back to Strategy Suite">&larr; Suite</a>
+        </div>
+    </nav>
+
+    <!-- NEW SUB-NAV FOR MULTIPLE SCENARIOS -->
+    <div class="bg-slate-800 border-b border-slate-700 px-6 py-2 flex gap-3 overflow-x-auto items-center shadow-inner">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2 shrink-0">Target Queue:</span>
+        <button onclick="loadProfile('rajiv')" id="tab-rajiv" class="px-3 py-1.5 rounded text-xs font-bold bg-slate-700 text-white border border-slate-500 transition-colors shrink-0">Rajiv S. (Churn Risk)</button>
+        <button onclick="loadProfile('priya')" id="tab-priya" class="px-3 py-1.5 rounded text-xs font-bold bg-slate-900 text-slate-400 border border-transparent hover:text-slate-200 transition-colors shrink-0">Priya P. (Upsell Limit)</button>
+        <button onclick="loadProfile('amit')" id="tab-amit" class="px-3 py-1.5 rounded text-xs font-bold bg-slate-900 text-slate-400 border border-transparent hover:text-slate-200 transition-colors shrink-0">Amit D. (Fintech Cross)</button>
+    </div>
+
+    <main class="flex-1 p-4 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6">
+        
+        <!-- LEFT PANEL: Customer 360 Profile -->
+        <div class="col-span-1 xl:col-span-3 glass-panel p-5 flex flex-col h-full relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-red-500 opacity-5 blur-3xl rounded-full" id="profile-glow"></div>
+            
+            <h2 class="text-sm uppercase tracking-wider font-bold text-slate-400 mb-4 border-b border-slate-700 pb-2">Customer 360 Profile</h2>
+            
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center overflow-hidden shrink-0">
+                    <svg class="w-8 h-8 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white" id="ui-name">Rajiv Sharma</h3>
+                    <p class="text-xs text-slate-400 code-font" id="ui-id">ID: ALT-8849-XYZ</p>
+                    <span id="ui-tier" class="mt-1 inline-block text-[10px] uppercase font-bold bg-blue-900 text-blue-300 px-2 py-0.5 rounded border border-blue-700">Pulse Tier (3 Services)</span>
+                </div>
+            </div>
+
+            <div class="space-y-4 flex-1">
+                <div class="bg-slate-900 p-3 rounded border border-slate-700">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-1">Current ARPU</p>
+                    <p class="text-xl font-bold text-white">₹ <span id="ui-arpu">452</span> <span class="text-sm font-normal text-slate-400">/mo</span></p>
+                </div>
+                
+                <div class="bg-slate-900 p-3 rounded border border-slate-700">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Connected Devices</p>
+                    <div class="flex gap-2 flex-wrap" id="ui-devices">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-3 rounded border border-slate-700">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-1">Tenure</p>
+                    <p class="text-white font-medium text-sm" id="ui-tenure">24 Months</p>
+                </div>
+            </div>
+            
+            <button onclick="simulateAnomaly()" id="btn-anomaly" class="w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded border border-slate-500 transition-colors shadow-lg group">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 text-yellow-400 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span id="ui-btn-text">Inject Behavioral Anomaly</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- CENTER PANEL: Live Telemetry Chart -->
+        <div class="col-span-1 xl:col-span-6 glass-panel p-5 flex flex-col h-full min-h-[450px]">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                <h2 class="text-sm uppercase tracking-wider font-bold text-slate-400 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                    Live Behavioral Telemetry (14 Days)
+                </h2>
+                <div class="flex gap-3 text-xs font-medium">
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-400"></div> 5G Data</span>
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-purple-500"></div> OTT Auth</span>
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-400"></div> Payments</span>
+                </div>
+            </div>
+            
+            <div class="flex-1 w-full relative">
+                <canvas id="telemetryChart"></canvas>
+            </div>
+            
+            <!-- Dynamic Log Box -->
+            <div class="mt-4 bg-slate-900 h-24 rounded border border-slate-700 p-2 overflow-y-auto text-xs code-font text-slate-400 flex flex-col-reverse" id="system-log">
+                <!-- Logs injected here -->
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Risk Engine & NBA -->
+        <div class="col-span-1 xl:col-span-3 glass-panel p-5 flex flex-col h-full">
+            <h2 class="text-sm uppercase tracking-wider font-bold text-slate-400 mb-4 border-b border-slate-700 pb-2">GARCH Volatility Model</h2>
+            
+            <!-- Risk Meter -->
+            <div id="risk-card" class="bg-slate-900 border border-emerald-500/30 rounded-lg p-5 text-center transition-all duration-500 shadow-[0_0_15px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                <div id="risk-glow" class="absolute inset-0 bg-emerald-500/10 transition-colors duration-500"></div>
+                <p class="text-xs text-slate-400 uppercase font-bold relative z-10">Predicted AI Trigger Risk</p>
+                <div class="flex justify-center items-end gap-1 mt-2 relative z-10">
+                    <span id="risk-score" class="text-5xl font-black text-emerald-400 transition-colors duration-500">1.3</span>
+                    <span class="text-lg font-bold text-slate-500 mb-1">%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full mt-4 relative z-10">
+                    <div id="risk-bar" class="bg-emerald-400 h-1.5 rounded-full transition-all duration-700 w-[13%]"></div>
+                </div>
+                <p id="risk-status" class="text-xs font-bold text-emerald-500 mt-3 relative z-10 tracking-widest uppercase transition-colors duration-500">Stable</p>
+            </div>
+
+            <!-- Interventions Section -->
+            <div class="mt-6 flex-1 flex flex-col">
+                <h3 class="text-xs uppercase tracking-wider font-bold text-slate-500 mb-3 flex items-center justify-between">
+                    Next-Best-Action (NBA)
+                    <div id="nba-loader" class="ai-loader hide"></div>
+                </h3>
+                
+                <div id="nba-empty" class="flex-1 flex flex-col items-center justify-center text-slate-500 text-center border-2 border-dashed border-slate-700 rounded-lg p-4 transition-opacity">
+                    <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <p class="text-xs">No intervention required.</p>
+                </div>
+
+                <div id="nba-active" class="flex-1 flex flex-col rounded-lg p-4 hide transition-all duration-500">
+                    <div class="flex items-start gap-3">
+                        <div id="nba-icon-bg" class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border text-white transition-colors duration-500">
+                            <span id="nba-icon"></span>
+                        </div>
+                        <div>
+                            <h4 id="nba-title" class="text-sm font-bold leading-tight transition-colors duration-500">Title</h4>
+                            <p id="nba-trig" class="text-[10px] text-slate-400 mt-1 code-font">Trig: Condition</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 bg-slate-900 p-3 rounded border border-slate-700">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Recommended AI Action:</p>
+                        <p class="text-sm text-white font-medium leading-tight">
+                            <span id="nba-action">Action</span><br>
+                            <span id="nba-sub" class="text-xs text-emerald-400">Subtext</span>
+                        </p>
+                    </div>
+
+                    <button onclick="executeAction()" id="btn-execute" class="w-full mt-auto text-white font-bold py-2 px-4 rounded border transition-all duration-300">
+                        Execute
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        const labels = ['D-14', 'D-13', 'D-12', 'D-11', 'D-10', 'D-9', 'D-8', 'D-7', 'D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Today'];
+        let telemetryChart;
+        let currentProfileId = 'rajiv';
+        let isAnomalyActive = false;
+
+        // Theme mapping for dynamic Tailwind classes based on scenario type
+        const themes = {
+            red: { // Churn Risk
+                cardBorder: 'border-red-500/50', cardShadow: 'shadow-[0_0_20px_rgba(227,0,15,0.2)]', glow: 'bg-red-500/20', textRisk: 'text-red-500', bar: 'bg-red-500',
+                nbaBg: 'bg-red-950/30', nbaBorder: 'border-red-500/30', nbaIconBg: 'bg-red-900', nbaIconBorder: 'border-red-700', nbaTitle: 'text-red-400',
+                btn: 'bg-red-600 hover:bg-red-500 border-red-400 shadow-[0_0_15px_rgba(227,0,15,0.4)]'
+            },
+            blue: { // Upsell Risk
+                cardBorder: 'border-blue-500/50', cardShadow: 'shadow-[0_0_20px_rgba(59,130,246,0.2)]', glow: 'bg-blue-500/20', textRisk: 'text-blue-500', bar: 'bg-blue-500',
+                nbaBg: 'bg-blue-950/30', nbaBorder: 'border-blue-500/30', nbaIconBg: 'bg-blue-900', nbaIconBorder: 'border-blue-700', nbaTitle: 'text-blue-400',
+                btn: 'bg-blue-600 hover:bg-blue-500 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]'
+            },
+            yellow: { // Fintech Leakage
+                cardBorder: 'border-yellow-500/50', cardShadow: 'shadow-[0_0_20px_rgba(234,179,8,0.2)]', glow: 'bg-yellow-500/20', textRisk: 'text-yellow-500', bar: 'bg-yellow-500',
+                nbaBg: 'bg-yellow-950/30', nbaBorder: 'border-yellow-500/30', nbaIconBg: 'bg-yellow-900', nbaIconBorder: 'border-yellow-700', nbaTitle: 'text-yellow-400',
+                btn: 'bg-yellow-600 hover:bg-yellow-500 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.4)]'
+            },
+            emerald: { // Stable State
+                cardBorder: 'border-emerald-500/30', cardShadow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]', glow: 'bg-emerald-500/10', textRisk: 'text-emerald-400', bar: 'bg-emerald-400', textStatus: 'text-emerald-500',
+                btn: 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
+            }
+        };
+
+        const profiles = {
+            rajiv: {
+                id: "ALT-8849-XYZ", name: "Rajiv Sharma",
+                tier: "Pulse Tier (3 Services)", tierClass: "bg-blue-900 text-blue-300 border-blue-700",
+                arpu: "452", tenure: "24 Months",
+                devices: '<span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">📱 2 Mobile</span> <span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">🌐 1 Router</span> <span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">📺 1 TV</span>',
+                btnText: "Inject Churn Behavior",
+                logInit: "> [SYS] Profile Loaded: Rajiv S. Baseline stable.",
+                
+                base5G: [65, 62, 68, 70, 64, 66, 63, 67, 65, 69, 64, 66, 68, 65, 67],
+                baseOTT: [80, 85, 82, 88, 79, 81, 85, 83, 86, 82, 80, 84, 85, 82, 81],
+                basePay: [30, 25, 45, 20, 25, 35, 40, 25, 30, 20, 35, 25, 30, 45, 20],
+                
+                anomalyLog: "CRITICAL: OTT usage flatlined. Irregular 5G IP ping (Speedtest) detected.",
+                riskColor: 'red', riskScore: '87.4', riskStatus: 'Flight Risk: Imminent',
+                nbaIcon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+                nbaTitle: "Flight Risk Detected", nbaTrig: "Trig: OTT Auth Drop + Competitor Speed Test IP Match.",
+                nbaAction: "Deploy 'Sovereign Trial' SMS", nbaSub: "Unlock Altura Bank Acc + 100GB Free Data.",
+                nbaBtnText: "Execute Auto-Retention",
+                
+                successLog: "Customer redeemed offer. Sovereign Tier activated. Telemetry stable.",
+                successRisk: "1.0", successStatus: "Stable (Sovereign Tier)",
+                
+                triggerAnomaly: function(chart) {
+                    chart.data.datasets[1].data.splice(12, 3, 40, 10, 0); // OTT Drops
+                    chart.data.datasets[0].data.splice(12, 3, 75, 90, 98); // 5G Spikes
+                },
+                triggerResolve: function(chart) {
+                    chart.data.datasets[1].data.splice(12, 3, 40, 45, 85); // OTT Recovers
+                    chart.data.datasets[0].data.splice(12, 3, 75, 70, 65); // 5G Normalizes
+                    chart.data.datasets[2].data.splice(12, 3, 30, 45, 95); // Pay Spikes
+                    document.getElementById('ui-tier').innerText = "Sovereign Tier (4 Services)";
+                    document.getElementById('ui-tier').className = "mt-1 inline-block text-[10px] uppercase font-bold bg-red-900 text-red-300 px-2 py-0.5 rounded border border-red-700";
+                    document.getElementById('ui-arpu').innerText = "583";
+                }
+            },
+            priya: {
+                id: "ALT-2211-ABC", name: "Priya Patel",
+                tier: "Link Tier (2 Services)", tierClass: "bg-slate-700 text-slate-300 border-slate-500",
+                arpu: "375", tenure: "11 Months",
+                devices: '<span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">📱 1 Mobile</span> <span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">💻 1 Laptop</span>',
+                btnText: "Simulate Bandwidth Cap",
+                logInit: "> [SYS] Profile Loaded: Priya P. High 5G dependency noted.",
+                
+                base5G: [80, 85, 82, 88, 85, 89, 90, 85, 88, 82, 85, 87, 86, 85, 88],
+                baseOTT: [20, 22, 19, 25, 20, 18, 22, 25, 20, 19, 24, 22, 20, 25, 21],
+                basePay: [10, 5, 10, 15, 10, 5, 10, 5, 10, 15, 10, 5, 10, 15, 10],
+                
+                anomalyLog: "WARNING: 5G Throttling threshold reached. OTT packet loss detected.",
+                riskColor: 'blue', riskScore: '65.0', riskStatus: 'Experience Degraded',
+                nbaIcon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>',
+                nbaTitle: "Upsell Opportunity Detected", nbaTrig: "Trig: 5G Data Cap hit + High Latency on Video packets.",
+                nbaAction: "Push 1-Click 'Gigabit Fiber' Upgrade", nbaSub: "Waive installation fee + 1 Mo Free TV.",
+                nbaBtnText: "Execute Digital Upsell",
+                
+                successLog: "Customer upgraded to Pulse Tier. 5G traffic successfully offloaded to Home Fiber.",
+                successRisk: "1.3", successStatus: "Stable (Pulse Tier)",
+                
+                triggerAnomaly: function(chart) {
+                    chart.data.datasets[0].data.splice(12, 3, 95, 99, 100); // 5G hits ceiling
+                    chart.data.datasets[1].data.splice(12, 3, 15, 5, 2); // OTT buffers/dies
+                },
+                triggerResolve: function(chart) {
+                    chart.data.datasets[0].data.splice(12, 3, 90, 50, 30); // 5G drops (offload to wifi)
+                    chart.data.datasets[1].data.splice(12, 3, 15, 60, 95); // OTT spikes (fiber streaming)
+                    document.getElementById('ui-tier').innerText = "Pulse Tier (3 Services)";
+                    document.getElementById('ui-tier').className = "mt-1 inline-block text-[10px] uppercase font-bold bg-blue-900 text-blue-300 px-2 py-0.5 rounded border border-blue-700";
+                    document.getElementById('ui-arpu').innerText = "452";
+                }
+            },
+            amit: {
+                id: "ALT-5599-FIN", name: "Amit Desai",
+                tier: "Pulse Tier (3 Services)", tierClass: "bg-blue-900 text-blue-300 border-blue-700",
+                arpu: "452", tenure: "36 Months",
+                devices: '<span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">📱 3 Mobile</span> <span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">🌐 1 Router</span> <span class="bg-slate-800 text-slate-300 p-1.5 rounded text-xs border border-slate-600">📺 2 TV</span>',
+                btnText: "Simulate Fintech Leakage",
+                logInit: "> [SYS] Profile Loaded: Amit D. High ecosystem use, Zero Altura Bank use.",
+                
+                base5G: [50, 55, 52, 58, 55, 59, 60, 55, 58, 52, 55, 57, 56, 55, 58],
+                baseOTT: [70, 72, 69, 75, 70, 68, 72, 75, 70, 69, 74, 72, 70, 75, 71],
+                basePay: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                
+                anomalyLog: "ALERT: External UPI switch detected via Deep Packet Inspection (DPI) and SMS routing.",
+                riskColor: 'yellow', riskScore: '42.5', riskStatus: 'Ecosystem Leakage',
+                nbaIcon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                nbaTitle: "Fintech Cross-Sell Triggered", nbaTrig: "Trig: DPI identifies competitor fintech DNS + Zero Altura Bank use.",
+                nbaAction: "Deploy 'Altura Auto-Pay' Invite", nbaSub: "Offer 10% OTT Cashback on first mandate.",
+                nbaBtnText: "Execute Cross-Sell Offer",
+                
+                successLog: "Customer enabled Auto-Pay. Altura Bank activated. Sovereign Tier unlocked.",
+                successRisk: "1.0", successStatus: "Stable (Sovereign Tier)",
+                
+                triggerAnomaly: function(chart) {
+                    // 5G data intentionally remains stable because he is still using Altura's network.
+                    // The AI detects the anomaly invisibly via DPI and SMS metadata, logged below.
+                },
+                triggerResolve: function(chart) {
+                    chart.data.datasets[2].data.splice(12, 3, 10, 60, 100); // Payments shoot up
+                    document.getElementById('ui-tier').innerText = "Sovereign Tier (4 Services)";
+                    document.getElementById('ui-tier').className = "mt-1 inline-block text-[10px] uppercase font-bold bg-red-900 text-red-300 px-2 py-0.5 rounded border border-red-700";
+                    document.getElementById('ui-arpu').innerText = "583";
+                }
+            }
+        };
+
+        window.onload = () => {
+            initChart();
+            loadProfile('rajiv'); // Load default
+        };
+
+        function addLog(message, isAlert = false, color = 'text-red-400') {
+            const logBox = document.getElementById('system-log');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+            const colorClass = isAlert ? `${color} font-bold` : 'text-slate-400';
+            const logEntry = document.createElement('div');
+            logEntry.className = colorClass;
+            logEntry.innerHTML = `> [${time}] ${message}`;
+            logBox.prepend(logEntry);
+        }
+
+        function clearLogs() {
+            document.getElementById('system-log').innerHTML = '';
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('telemetryChart').getContext('2d');
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = 'JetBrains Mono';
+            Chart.defaults.font.size = 10;
+
+            telemetryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: '5G Data Usage', data: [], borderColor: '#60a5fa', backgroundColor: 'rgba(96, 165, 250, 0.1)', borderWidth: 2, tension: 0.4, pointRadius: 0, fill: true },
+                        { label: 'OTT Authentications', data: [], borderColor: '#a855f7', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+                        { label: 'Payments Activity', data: [], borderColor: '#34d399', borderWidth: 2, borderDash: [5, 5], tension: 0.4, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: '#334155', borderDash: [2, 4] }, ticks: { display: false } },
+                        x: { grid: { display: false } }
+                    },
+                    animation: { duration: 1000, easing: 'easeOutQuart' }
+                }
+            });
+        }
+
+        function loadProfile(id) {
+            currentProfileId = id;
+            const p = profiles[id];
+            isAnomalyActive = false;
+
+            // Update Tabs
+            ['rajiv', 'priya', 'amit'].forEach(tabId => {
+                const tab = document.getElementById(`tab-${tabId}`);
+                if(tabId === id) {
+                    tab.className = "px-3 py-1.5 rounded text-xs font-bold bg-slate-700 text-white border border-slate-500 transition-colors shrink-0";
+                } else {
+                    tab.className = "px-3 py-1.5 rounded text-xs font-bold bg-slate-900 text-slate-400 border border-transparent hover:text-slate-200 transition-colors shrink-0";
+                }
+            });
+
+            // Reset UI Profile
+            document.getElementById('ui-name').innerText = p.name;
+            document.getElementById('ui-id').innerText = "ID: " + p.id;
+            document.getElementById('ui-tier').innerText = p.tier;
+            document.getElementById('ui-tier').className = "mt-1 inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded border " + p.tierClass;
+            document.getElementById('ui-arpu').innerText = p.arpu;
+            document.getElementById('ui-tenure').innerText = p.tenure;
+            document.getElementById('ui-devices').innerHTML = p.devices;
+            document.getElementById('ui-btn-text').innerText = p.btnText;
+            
+            // Reset Buttons
+            const btnAnomaly = document.getElementById('btn-anomaly');
+            btnAnomaly.disabled = false;
+            btnAnomaly.className = "w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded border border-slate-500 transition-colors shadow-lg group cursor-pointer opacity-100";
+            
+            // Reset Risk UI to Stable
+            applyThemeToRisk('emerald', '1.3', 'Stable'); // Default base stable
+            document.getElementById('nba-empty').classList.remove('hide');
+            document.getElementById('nba-active').classList.add('hide');
+            document.getElementById('nba-active').classList.remove('opacity-50', 'pointer-events-none');
+            
+            telemetryChart.data.datasets[0].data.length = 0;
+            telemetryChart.data.datasets[0].data.push(...p.base5G);
+            
+            telemetryChart.data.datasets[1].data.length = 0;
+            telemetryChart.data.datasets[1].data.push(...p.baseOTT);
+            
+            telemetryChart.data.datasets[2].data.length = 0;
+            telemetryChart.data.datasets[2].data.push(...p.basePay);
+            
+            telemetryChart.update();
+
+            clearLogs();
+            addLog(p.logInit);
+        }
+
+        function applyThemeToRisk(themeKey, score, statusText) {
+            const t = themes[themeKey];
+            
+            // Apply to Risk Card
+            document.getElementById('risk-card').className = `bg-slate-900 border rounded-lg p-5 text-center transition-all duration-500 relative overflow-hidden ${t.cardBorder} ${t.cardShadow}`;
+            document.getElementById('risk-glow').className = `absolute inset-0 transition-colors duration-500 ${t.glow}`;
+            
+            const scoreEl = document.getElementById('risk-score');
+            scoreEl.innerText = score;
+            scoreEl.className = `text-5xl font-black transition-colors duration-500 ${themeKey === 'emerald' ? t.textRisk : t.textRisk}`;
+            
+            document.getElementById('risk-bar').className = `h-1.5 rounded-full transition-all duration-1000 w-[${parseFloat(score)}%] ${t.bar}`;
+            
+            const statusEl = document.getElementById('risk-status');
+            statusEl.innerText = statusText;
+            statusEl.className = `text-xs font-bold mt-3 relative z-10 tracking-widest uppercase transition-colors duration-500 ${themeKey === 'emerald' ? t.textStatus : t.textRisk}`;
+        }
+
+        function applyThemeToNBA(themeKey) {
+            const t = themes[themeKey];
+            const activeBox = document.getElementById('nba-active');
+            
+            // Strip existing dynamic classes (simplified by overriding classname entirely)
+            activeBox.className = `flex-1 flex flex-col rounded-lg p-4 transition-all duration-500 border ${t.nbaBg} ${t.nbaBorder}`;
+            document.getElementById('nba-icon-bg').className = `w-8 h-8 rounded-full flex items-center justify-center shrink-0 border text-white transition-colors duration-500 ${t.nbaIconBg} ${t.nbaIconBorder}`;
+            document.getElementById('nba-title').className = `text-sm font-bold leading-tight transition-colors duration-500 ${t.nbaTitle}`;
+            
+            const btn = document.getElementById('btn-execute');
+            btn.className = `w-full mt-auto text-white font-bold py-2 px-4 rounded border transition-all duration-300 ${t.btn}`;
+        }
+
+        function simulateAnomaly() {
+            if(isAnomalyActive) return;
+            isAnomalyActive = true;
+            const p = profiles[currentProfileId];
+
+            document.getElementById('btn-anomaly').disabled = true;
+            document.getElementById('btn-anomaly').classList.add('opacity-50', 'cursor-not-allowed');
+            
+            addLog("Behavioral shift detected. Re-calibrating metrics...", true, themes[p.riskColor].textRisk.replace('text-', 'text-')); // Hacky color map
+            
+            setTimeout(() => {
+                p.triggerAnomaly(telemetryChart);
+                telemetryChart.update();
+                addLog(p.anomalyLog, true, themes[p.riskColor].textRisk.split(' ')[0]); 
+                triggerRiskSpike(p);
+            }, 1000);
+        }
+
+        function triggerRiskSpike(p) {
+            document.getElementById('global-status').className = 'status-dot ' + p.riskColor;
+            
+            // Apply Risk Theme
+            applyThemeToRisk(p.riskColor, p.riskScore, p.riskStatus);
+
+            // Setup NBA Data
+            document.getElementById('nba-icon').innerHTML = p.nbaIcon;
+            document.getElementById('nba-title').innerText = p.nbaTitle;
+            document.getElementById('nba-trig').innerText = p.nbaTrig;
+            document.getElementById('nba-action').innerText = p.nbaAction;
+            document.getElementById('nba-sub').innerText = p.nbaSub;
+            document.getElementById('btn-execute').innerText = p.nbaBtnText;
+            document.getElementById('btn-execute').disabled = false;
+
+            applyThemeToNBA(p.riskColor);
+
+            // Show AI Loader then NBA
+            document.getElementById('nba-loader').classList.remove('hide');
+            setTimeout(() => {
+                document.getElementById('nba-loader').classList.add('hide');
+                document.getElementById('nba-empty').classList.add('hide');
+                document.getElementById('nba-active').classList.remove('hide');
+                addLog("AI Engine computed optimal Next-Best-Action.");
+            }, 1500);
+        }
+
+        function executeAction() {
+            const p = profiles[currentProfileId];
+            document.getElementById('btn-execute').disabled = true;
+            document.getElementById('btn-execute').innerHTML = "Deploying Offer...";
+            
+            addLog(`Executing protocol: '${p.nbaAction}'. Dispatching to device...`);
+            
+            setTimeout(() => {
+                p.triggerResolve(telemetryChart);
+                telemetryChart.update();
+                resolveRisk(p);
+                addLog(p.successLog);
+            }, 2000);
+        }
+
+        function resolveRisk(p) {
+            document.getElementById('global-status').className = 'status-dot green';
+            
+            // Revert UI to Green/Stable State
+            applyThemeToRisk('emerald', p.successRisk, p.successStatus);
+
+            document.getElementById('nba-active').classList.add('opacity-50', 'pointer-events-none');
+            
+            const btn = document.getElementById('btn-execute');
+            btn.innerHTML = "Action Successful";
+            btn.className = `w-full mt-auto text-white font-bold py-2 px-4 rounded border transition-all duration-300 ${themes.emerald.btn}`;
+        }
+    </script>
+</body>
+</html>

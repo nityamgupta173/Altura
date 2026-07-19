@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altura AI - Ecosystem Configurator</title>
+    
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for live data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --airtel-red: #e3000f;
+            --airtel-dark-red: #990000;
+            --airtel-black: #111111;
+            --airtel-dark-gray: #222222;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Gradients & Accents */
+        .bg-gradient-red {
+            background: linear-gradient(135deg, var(--airtel-red) 0%, var(--airtel-dark-red) 100%);
+        }
+        .text-gradient-red {
+            background: linear-gradient(135deg, var(--airtel-red) 0%, var(--airtel-dark-red) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Interactive Cards */
+        .tier-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        .tier-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .tier-card.selected {
+            border-color: var(--airtel-red);
+            background-color: #fffafa;
+            box-shadow: 0 0 0 4px rgba(227, 0, 15, 0.1);
+        }
+
+        /* Loading Spinner for AI Simulation */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--airtel-red);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Pulse Animation for Wallet */
+        .pulse-wallet {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        
+        .hide { display: none !important; }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <nav class="bg-gradient-red text-white px-6 py-4 shadow-md flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white text-red-600 rounded-full flex items-center justify-center font-bold text-xl leading-none">a</div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">Altura AI Configurator</h1>
+                <p class="text-xs text-red-100 opacity-90 uppercase tracking-wider">iCreate 2026 Strategy Prototype</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="wallet-container" class="bg-black bg-opacity-30 px-4 py-2 rounded-lg flex items-center gap-2 border border-white border-opacity-20 transition-all duration-500">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-300 leading-tight uppercase">Altura Payments Bank</span>
+                    <span class="text-sm font-bold leading-tight" id="wallet-balance">₹ 0</span>
+                </div>
+            </div>
+            <a href="index.html" class="text-sm bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded transition flex items-center" title="Back to Strategy Suite">&larr;&nbsp;Suite</a>
+            <button onclick="resetPrototype()" class="text-sm bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded transition">Reset</button>
+        </div>
+    </nav>
+
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- LEFT PANEL: Interactive Controls -->
+        <div class="w-1/2 bg-white p-8 overflow-y-auto border-r border-gray-200 shadow-xl z-0">
+            
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900">1. Current Household State</h2>
+                <p class="text-sm text-gray-500 mt-1">Select the customer's current relationship with Altura.</p>
+                
+                <div class="mt-4 flex gap-4">
+                    <button id="btn-prepaid" onclick="selectCurrentState('prepaid')" class="flex-1 py-3 px-4 rounded-lg border-2 border-red-600 bg-red-50 text-red-700 font-bold transition">Single Prepaid Mobile</button>
+                    <button id="btn-competitor" onclick="selectCurrentState('competitor')" class="flex-1 py-3 px-4 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-600 font-medium hover:border-gray-300 transition">Prepaid + Competitor WiFi</button>
+                </div>
+            </div>
+
+            <div id="buyout-section" class="mb-8 opacity-50 pointer-events-none transition-opacity duration-300 relative">
+                <div class="absolute -left-4 top-0 bottom-0 w-1 bg-red-500 rounded-r hide" id="buyout-active-indicator"></div>
+                <h2 class="text-2xl font-bold text-gray-900">2. AI Buyout Engine</h2>
+                <p class="text-sm text-gray-500 mt-1">Edge-computing OCR parses competitor penalty instantly.</p>
+                
+                <div id="upload-zone" onclick="simulateUpload()" class="mt-4 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:bg-gray-50 hover:border-red-400 transition-colors bg-gray-50">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="font-medium text-gray-700">Click to upload legacy competitor invoice</p>
+                    <p class="text-xs text-gray-400 mt-1">Supports PDF, JPG. Processed client-side.</p>
+                </div>
+
+                <!-- Hidden Processing State -->
+                <div id="processing-state" class="mt-4 p-6 border border-gray-200 rounded-xl bg-gray-50 text-center hide">
+                    <div class="loader mb-3"></div>
+                    <p class="font-medium text-gray-700" id="processing-text">Parsing Unstructured Data...</p>
+                </div>
+
+                <!-- Hidden Success State -->
+                <div id="success-state" class="mt-4 p-5 border border-green-200 bg-green-50 rounded-xl hide">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-800">Competitor Penalty Identified</h4>
+                            <p class="text-sm text-green-700 mt-1">AI extracted a cancellation fee of <strong>₹2,500</strong>. Credit approved and disbursed to Walled Garden Wallet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">3. Select Target Ecosystem</h2>
+                <p class="text-sm text-gray-500 mt-1">Upgrade household to the Connected Home architecture.</p>
+                
+                <div class="mt-4 space-y-3">
+                    <!-- Link -->
+                    <div id="tier-link" onclick="selectTier('link')" class="tier-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-lg text-gray-800">Altura Link</h3>
+                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded font-bold">2 Services</span>
+                            </div>
+                            <p class="text-sm text-gray-500">Mobility + Broadband</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-black text-xl">₹375<span class="text-xs text-gray-500 font-normal">/mo</span></div>
+                            <div class="text-xs text-red-500 font-bold">1.70% Churn</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pulse -->
+                    <div id="tier-pulse" onclick="selectTier('pulse')" class="tier-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-lg text-gray-800">Altura Pulse</h3>
+                                <span class="bg-blue-50 text-blue-600 border border-blue-200 text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">The Decoy</span>
+                            </div>
+                            <p class="text-sm text-gray-500">Mobility + Broadband + TV</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-black text-xl">₹452<span class="text-xs text-gray-500 font-normal">/mo</span></div>
+                            <div class="text-xs text-red-500 font-bold">1.30% Churn</div>
+                        </div>
+                    </div>
+
+                    <!-- Sovereign -->
+                    <div id="tier-sovereign" onclick="selectTier('sovereign')" class="tier-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-red-50 transform rotate-45 translate-x-8 -translate-y-8"></div>
+                        <div>
+                            <div class="flex items-center gap-2 relative z-10">
+                                <h3 class="font-bold text-lg text-red-600">Altura Sovereign</h3>
+                                <span class="bg-red-100 text-red-700 border border-red-200 text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm">Target</span>
+                            </div>
+                            <p class="text-sm text-gray-600 font-medium relative z-10">Mobility + Broadband + OTT/TV + Payments Bank</p>
+                        </div>
+                        <div class="text-right relative z-10">
+                            <div class="font-black text-2xl text-red-600">₹583<span class="text-xs text-gray-500 font-normal">/mo</span></div>
+                            <div class="text-sm text-green-500 font-bold">1.00% Churn</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Live Analytics -->
+        <div class="w-1/2 bg-gray-50 p-8 flex flex-col overflow-y-auto">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-200 pb-2">Unit Economics Impact</h2>
+
+            <!-- Top Metric Cards -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <!-- Churn Risk -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Projected Churn Risk</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="metric-churn" class="text-4xl font-black text-red-500">3.00%</span>
+                    </div>
+                    <p id="metric-lifespan" class="text-sm text-gray-600 mt-2">Avg. Lifespan: <span class="font-bold">33 Months</span></p>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+                        <div id="churn-bar" class="h-full bg-red-500 transition-all duration-1000" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- CLTV Multiplier -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Customer Lifetime Value (LTV)</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="metric-ltv" class="text-4xl font-black text-gray-900">₹8,481</span>
+                    </div>
+                    <p id="metric-ltv-delta" class="text-sm text-green-500 font-bold mt-2 opacity-0 transition-opacity">↑ +X% Value Growth</p>
+                    
+                    <!-- NEW: Buyout Economics Box (Hidden by default) -->
+                    <div id="buyout-economics" class="mt-3 bg-red-50 border border-red-100 rounded p-2 hide">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-red-700 font-semibold">Buyout CAC:</span>
+                            <span class="text-red-800 font-bold">-₹2,500</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs mt-1 border-t border-red-100 pt-1">
+                            <span class="text-green-700 font-semibold">Net LTV:</span>
+                            <span id="metric-net-ltv" class="text-green-800 font-bold">₹0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs mt-1">
+                            <span class="text-gray-600 font-semibold">CAC Payback:</span>
+                            <span id="metric-payback" class="text-gray-800 font-bold">0 Mos</span>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+                        <div id="ltv-bar" class="h-full bg-gray-800 transition-all duration-1000" style="width: 15%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ARPU Waterfall Chart -->
+            <div class="flex-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-[300px]">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">ARPU Expansion vs State</p>
+                    <span id="arpu-badge" class="text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded">Baseline</span>
+                </div>
+                <div class="relative flex-1 w-full h-full">
+                    <canvas id="arpuChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Insight Box -->
+            <div class="mt-6 bg-gray-900 text-white p-5 rounded-xl shadow-lg border-l-4 border-red-500">
+                <h4 class="font-bold text-lg mb-1 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Strategic Insight
+                </h4>
+                <p id="insight-text" class="text-sm text-gray-300 leading-relaxed">
+                    Currently viewing the baseline prepaid state. ARPU is restricted and churn risk is extremely high. Move the customer to a bundle to increase ecosystem stickiness.
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // State Variables
+        let currentState = 'prepaid'; // 'prepaid', 'competitor'
+        let currentTier = null; // 'link', 'pulse', 'sovereign'
+        let hasUploaded = false;
+        
+        // Data Models based on Case Data
+        const dataModels = {
+            baseline: { arpu: 257, churn: 3.00, months: 33, ltv: 8481 },
+            link: { arpu: 375, churn: 1.70, months: 59, ltv: 22125 },
+            pulse: { arpu: 452, churn: 1.30, months: 77, ltv: 34804 },
+            sovereign: { arpu: 583, churn: 1.00, months: 100, ltv: 58300 }
+        };
+
+        // Chart Instance
+        let arpuChart;
+
+        // Initialize Application
+        window.onload = () => {
+            initChart();
+            updateDashboard();
+        };
+
+        // --- Interaction Functions ---
+
+        function selectCurrentState(state) {
+            currentState = state;
+            
+            // UI Toggle
+            document.getElementById('btn-prepaid').className = state === 'prepaid' 
+                ? 'flex-1 py-3 px-4 rounded-lg border-2 border-red-600 bg-red-50 text-red-700 font-bold transition'
+                : 'flex-1 py-3 px-4 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-600 font-medium hover:border-gray-300 transition';
+                
+            document.getElementById('btn-competitor').className = state === 'competitor' 
+                ? 'flex-1 py-3 px-4 rounded-lg border-2 border-red-600 bg-red-50 text-red-700 font-bold transition'
+                : 'flex-1 py-3 px-4 rounded-lg border-2 border-gray-200 bg-gray-50 text-gray-600 font-medium hover:border-gray-300 transition';
+
+            // Enable Buyout Section if competitor is selected
+            const buyoutSec = document.getElementById('buyout-section');
+            const buyoutInd = document.getElementById('buyout-active-indicator');
+            if(state === 'competitor') {
+                buyoutSec.classList.remove('opacity-50', 'pointer-events-none');
+                buyoutInd.classList.remove('hide');
+            } else {
+                buyoutSec.classList.add('opacity-50', 'pointer-events-none');
+                buyoutInd.classList.add('hide');
+            }
+            
+            // Reset if switching states
+            if(state === 'prepaid') {
+                resetBuyoutUI();
+            }
+            
+            currentTier = null;
+            resetTiersUI();
+            updateDashboard();
+        }
+
+        function simulateUpload() {
+            if(currentState !== 'competitor' || hasUploaded) return;
+            
+            document.getElementById('upload-zone').classList.add('hide');
+            document.getElementById('processing-state').classList.remove('hide');
+            
+            // Fake AI Processing Sequence
+            setTimeout(() => {
+                document.getElementById('processing-text').innerText = "Identifying Cancellation Clause...";
+            }, 800);
+            
+            setTimeout(() => {
+                document.getElementById('processing-text').innerText = "Calculating LTV offset limit...";
+            }, 1600);
+            
+            setTimeout(() => {
+                document.getElementById('processing-state').classList.add('hide');
+                document.getElementById('success-state').classList.remove('hide');
+                hasUploaded = true;
+                
+                // Credit Wallet
+                const wallet = document.getElementById('wallet-container');
+                const bal = document.getElementById('wallet-balance');
+                wallet.classList.add('pulse-wallet');
+                wallet.classList.replace('bg-black', 'bg-green-900');
+                bal.innerText = "₹ 2,500";
+                
+                // Auto-select Sovereign to show the hook
+                setTimeout(() => {
+                    selectTier('sovereign');
+                }, 1000);
+                
+            }, 2500);
+        }
+
+        function selectTier(tier) {
+            currentTier = tier;
+            
+            // UI Toggle
+            document.getElementById('tier-link').classList.remove('selected');
+            document.getElementById('tier-pulse').classList.remove('selected');
+            document.getElementById('tier-sovereign').classList.remove('selected');
+            
+            document.getElementById(`tier-${tier}`).classList.add('selected');
+            
+            updateDashboard();
+        }
+
+        function resetPrototype() {
+            hasUploaded = false;
+            currentTier = null;
+            selectCurrentState('prepaid');
+            resetBuyoutUI();
+            
+            // Reset Wallet
+            const wallet = document.getElementById('wallet-container');
+            wallet.classList.remove('pulse-wallet');
+            wallet.classList.replace('bg-green-900', 'bg-black');
+            document.getElementById('wallet-balance').innerText = "₹ 0";
+            
+            updateDashboard();
+        }
+
+        function resetBuyoutUI() {
+            document.getElementById('upload-zone').classList.remove('hide');
+            document.getElementById('processing-state').classList.add('hide');
+            document.getElementById('success-state').classList.add('hide');
+            document.getElementById('processing-text').innerText = "Parsing Unstructured Data...";
+        }
+
+        function resetTiersUI() {
+            document.getElementById('tier-link').classList.remove('selected');
+            document.getElementById('tier-pulse').classList.remove('selected');
+            document.getElementById('tier-sovereign').classList.remove('selected');
+        }
+
+        // --- Dashboard Analytics Logic ---
+
+        function updateDashboard() {
+            // Determine active data model
+            const activeModel = currentTier ? dataModels[currentTier] : dataModels.baseline;
+            const isBaseline = !currentTier;
+
+            // Update Text Metrics
+            document.getElementById('metric-churn').innerText = activeModel.churn.toFixed(2) + '%';
+            document.getElementById('metric-churn').className = `text-4xl font-black ${isBaseline ? 'text-red-500' : 'text-green-500'}`;
+            
+            document.getElementById('metric-lifespan').innerHTML = `Avg. Lifespan: <span class="font-bold">${activeModel.months} Months</span>`;
+            
+            // Animate progress bars
+            const churnPercent = (activeModel.churn / 3.00) * 100;
+            const churnBar = document.getElementById('churn-bar');
+            churnBar.style.width = `${churnPercent}%`;
+            churnBar.className = `h-full transition-all duration-1000 ${isBaseline ? 'bg-red-500' : 'bg-green-500'}`;
+
+            document.getElementById('metric-ltv').innerText = '₹' + activeModel.ltv.toLocaleString();
+            
+            const ltvPercent = (activeModel.ltv / 58300) * 100;
+            document.getElementById('ltv-bar').style.width = `${Math.max(ltvPercent, 15)}%`; // Keep min width for visual
+
+            const ltvDelta = document.getElementById('metric-ltv-delta');
+            if(!isBaseline) {
+                const growth = (((activeModel.ltv - dataModels.baseline.ltv) / dataModels.baseline.ltv) * 100).toFixed(0);
+                ltvDelta.innerText = `↑ +${growth}% Value Growth`;
+                ltvDelta.classList.remove('opacity-0');
+            } else {
+                ltvDelta.classList.add('opacity-0');
+            }
+
+            // NEW: Update Buyout Economics if Buyout was used
+            const buyoutEcoBox = document.getElementById('buyout-economics');
+            if (hasUploaded && !isBaseline) {
+                buyoutEcoBox.classList.remove('hide');
+                const netLtv = activeModel.ltv - 2500;
+                const payback = (2500 / activeModel.arpu).toFixed(1);
+                
+                document.getElementById('metric-net-ltv').innerText = '₹' + netLtv.toLocaleString();
+                document.getElementById('metric-payback').innerText = payback + ' Months';
+                
+                // Adjust main LTV text to show Gross
+                document.getElementById('metric-ltv').classList.remove('text-gray-900');
+                document.getElementById('metric-ltv').classList.add('text-gray-400');
+            } else {
+                buyoutEcoBox.classList.add('hide');
+                document.getElementById('metric-ltv').classList.add('text-gray-900');
+                document.getElementById('metric-ltv').classList.remove('text-gray-400');
+            }
+
+            // Update Badge and Insight Text
+            const badge = document.getElementById('arpu-badge');
+            const insightText = document.getElementById('insight-text');
+            
+            if (isBaseline) {
+                badge.innerText = "Baseline";
+                badge.className = "text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded";
+                insightText.innerText = "Currently viewing the baseline prepaid state. ARPU is restricted to ₹257 and churn risk is extremely high at 3%. Move the customer to a bundle to increase ecosystem stickiness.";
+            } else if (currentTier === 'link') {
+                badge.innerText = "+46% ARPU Premium";
+                badge.className = "text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded";
+                insightText.innerText = "The Link tier successfully consolidates the basic utilities (Mobile + WiFi). Churn drops significantly to 1.70%, increasing the customer lifespan by nearly two years.";
+            } else if (currentTier === 'pulse') {
+                badge.innerText = "+76% ARPU Premium";
+                badge.className = "text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-700 rounded";
+                insightText.innerText = "The Pulse tier acts as the Decoy. By adding TV, ARPU jumps to ₹452. However, the marginal cost to upgrade to Sovereign makes Pulse look slightly less attractive to the consumer.";
+            } else if (currentTier === 'sovereign') {
+                badge.innerText = "+126% ARPU Premium";
+                badge.className = "text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded shadow-sm";
+                insightText.innerText = "Maximum Value Achieved. The Sovereign tier integrates the Payments Bank, locking the customer in with a 1.00% churn rate. The massive LTV of ₹58,300 mathematically absorbs any initial buyout CAC.";
+            }
+
+            // Update Chart
+            updateChart(activeModel.arpu, isBaseline ? 0 : activeModel.arpu);
+        }
+
+        // --- Chart.js Configuration ---
+        function initChart() {
+            const ctx = document.getElementById('arpuChart').getContext('2d');
+            
+            // Gradients
+            const redGradient = ctx.createLinearGradient(0, 0, 0, 300);
+            redGradient.addColorStop(0, 'rgba(227, 0, 15, 0.9)');
+            redGradient.addColorStop(1, 'rgba(153, 0, 0, 0.7)');
+
+            const grayGradient = ctx.createLinearGradient(0, 0, 0, 300);
+            grayGradient.addColorStop(0, 'rgba(156, 163, 175, 0.8)');
+            grayGradient.addColorStop(1, 'rgba(107, 114, 128, 0.6)');
+
+            arpuChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Current ARPU', 'Projected ARPU'],
+                    datasets: [{
+                        label: 'ARPU (₹)',
+                        data: [257, 0],
+                        backgroundColor: [grayGradient, redGradient],
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return '₹ ' + context.raw; }
+                            },
+                            backgroundColor: 'rgba(17, 17, 17, 0.9)',
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+                            padding: 10,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 700,
+                            grid: { borderDash: [4, 4], color: '#e5e7eb' },
+                            ticks: { font: { family: 'Inter', weight: '600' }, callback: function(val) { return '₹'+val; } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', weight: 'bold', size: 13 }, color: '#4b5563' }
+                        }
+                    },
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function updateChart(targetArpu, currentTargetValue) {
+            if(!arpuChart) return;
+            
+            // Baseline always remains 257 in this view
+            arpuChart.data.datasets[0].data = [257, currentTargetValue];
+            
+            // Change color of second bar based on tier
+            const ctx = document.getElementById('arpuChart').getContext('2d');
+            const targetGradient = ctx.createLinearGradient(0, 0, 0, 300);
+            
+            if (currentTier === 'sovereign') {
+                targetGradient.addColorStop(0, 'rgba(227, 0, 15, 0.9)'); // Airtel Red
+                targetGradient.addColorStop(1, 'rgba(153, 0, 0, 0.7)');
+            } else {
+                targetGradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)'); // Blue for lower tiers
+                targetGradient.addColorStop(1, 'rgba(37, 99, 235, 0.6)');
+            }
+            
+            const grayGradient = ctx.createLinearGradient(0, 0, 0, 300);
+            grayGradient.addColorStop(0, 'rgba(156, 163, 175, 0.8)');
+            grayGradient.addColorStop(1, 'rgba(107, 114, 128, 0.6)');
+
+            arpuChart.data.datasets[0].backgroundColor = [grayGradient, currentTargetValue === 0 ? 'transparent' : targetGradient];
+            
+            arpuChart.update();
+        }
+    </script>
+</body>
+</html>
