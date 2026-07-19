@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Altura Home · Team B-Soc demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4f1; --card:#ffffff; --tint:#faf8f5;
+  --ink:#1a1720; --dim:#6f6a76; --faint:#a09aa6;
+  --line:#eae6e0; --line2:#ddd7cf;
+  --red:#d5202a; --red-soft:#fbe9ea; --red-line:#f3c8ca;
+  --green:#177a4c; --green-soft:#e7f4ec; --green-line:#c2e2d0;
+  --amber:#a8720f; --amber-soft:#f8eed9;
+  --fd:'Archivo',sans-serif; --fb:'Inter',sans-serif;
+  --sh:0 14px 36px -16px rgba(30,24,40,.22);
+  --sh-sm:0 5px 16px -9px rgba(30,24,40,.20);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--fb); color:var(--ink);
+  background:linear-gradient(165deg,#efece8 0%,#e7e3de 100%);
+  display:flex; align-items:center; justify-content:center; gap:48px;
+  padding:28px 16px; min-height:100vh;
+}
+
+/* ---------- judges' sidebar ---------- */
+.aside{max-width:270px; display:none}
+@media(min-width:1120px){.aside{display:block}}
+.aside .k{font-family:var(--fd); font-weight:700; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--red)}
+.aside h2{font-family:var(--fd); font-weight:900; font-size:29px; line-height:1.04; letter-spacing:-.02em; margin:10px 0 12px}
+.aside p{font-size:13px; line-height:1.6; color:var(--dim); margin-bottom:14px}
+.aside a.back{display:inline-block; font-family:var(--fd); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); text-decoration:none; border:1px solid var(--line2); background:#fff; padding:9px 13px; border-radius:10px; transition:.15s}
+.aside a.back:hover{border-color:var(--ink)}
+.map{margin-top:22px; border-top:1px solid var(--line2); padding-top:14px}
+.map .mh{font-family:var(--fd); font-weight:800; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:10px}
+.map .mr{display:flex; justify-content:space-between; gap:10px; font-size:11.5px; padding:6px 0; border-bottom:1px dashed var(--line)}
+.map .mr:last-child{border:none}
+.map .mr b{font-weight:600}
+.map .mr span{color:var(--faint); text-align:right; white-space:nowrap}
+
+/* ---------- phone ---------- */
+#fit{flex:0 0 auto; position:relative}
+.phone{position:relative; width:392px; height:832px; flex:0 0 auto; transform-origin:top left;
+  background:#100e14; border-radius:52px; padding:13px;
+  box-shadow:0 42px 90px -32px rgba(60,20,26,.45), inset 0 0 0 2px #262230}
+.screen{position:relative; width:100%; height:100%; background:var(--bg); border-radius:40px; overflow:hidden; display:flex; flex-direction:column}
+.notch{position:absolute; top:14px; left:50%; transform:translateX(-50%); width:128px; height:27px; background:#100e14; border-radius:0 0 17px 17px; z-index:60}
+.sbar{flex:0 0 auto; height:44px; display:flex; align-items:center; justify-content:space-between; padding:0 27px 0 31px; font-family:var(--fd); font-weight:700; font-size:13px}
+.sbar .r{display:flex; gap:7px; font-size:11px; letter-spacing:-.5px; color:var(--dim)}
+
+.stack{position:relative; flex:1; overflow:hidden}
+.view{position:absolute; inset:0; overflow-y:auto; padding:4px 18px 112px; display:none; scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.view.on{display:block}
+
+/* type */
+.hello{font-size:12.5px; color:var(--dim); margin-top:8px}
+.h1{font-family:var(--fd); font-weight:900; font-size:26px; letter-spacing:-.03em; line-height:1.06; margin:3px 0 16px}
+.h1 em{font-style:normal; color:var(--red)}
+.sect{display:flex; align-items:baseline; justify-content:space-between; margin:20px 0 10px}
+.sect h3{font-family:var(--fd); font-weight:800; font-size:14.5px; letter-spacing:-.01em}
+.sect a{font-size:11.5px; font-weight:600; color:var(--red); text-decoration:none; cursor:pointer}
+
+/* cards */
+.card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:16px; box-shadow:var(--sh-sm); margin-bottom:11px; animation:rise .4s ease backwards}
+@keyframes rise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+.view.on .card:nth-of-type(2){animation-delay:.05s}
+.view.on .card:nth-of-type(3){animation-delay:.1s}
+.view.on .card:nth-of-type(4){animation-delay:.15s}
+
+.ic{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto}
+.ic.sm{width:16px;height:16px}
+.ic.lg{width:24px;height:24px}
+
+/* status hero */
+.pill{display:inline-flex; align-items:center; gap:7px; font-family:var(--fd); font-weight:700; font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:6px 11px; border-radius:20px}
+.pill.g{background:var(--green-soft); color:var(--green); border:1px solid var(--green-line)}
+.pill.a{background:var(--amber-soft); color:var(--amber); border:1px solid #ecd9ae}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor; animation:blink 2.2s infinite}
+@keyframes blink{50%{opacity:.35}}
+.hero h4{font-family:var(--fd); font-weight:800; font-size:18px; letter-spacing:-.02em; margin:11px 0 5px}
+.hero p{font-size:12.5px; color:var(--dim); line-height:1.6}
+.path{display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:13px; border-top:1px solid var(--line)}
+.pn{flex:1; text-align:center; padding:9px 4px 8px; border-radius:13px; background:var(--tint); border:1px solid var(--line); color:var(--dim); transition:.35s}
+.pn .l{font-family:var(--fd); font-weight:700; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; margin-top:4px}
+.pn.live{background:var(--green-soft); border-color:var(--green-line); color:var(--green)}
+.pn.down{background:var(--red-soft); border-color:var(--red-line); color:var(--red)}
+.pathsep{color:var(--faint); font-size:12px}
+.linkbtn{margin-top:13px; width:100%; background:none; border:1px solid var(--line2); border-radius:12px; padding:11px; font-family:var(--fd); font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer; transition:.15s; display:flex; align-items:center; justify-content:center; gap:7px}
+.linkbtn:hover{border-color:var(--ink)}
+
+/* glance row */
+.glance{display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px}
+.gl{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 11px; box-shadow:var(--sh-sm)}
+.gl .gv{font-family:var(--fd); font-weight:900; font-size:16.5px; letter-spacing:-.02em}
+.gl .gl2{font-size:10px; color:var(--faint); margin-top:3px; line-height:1.35}
+.gl .gv small{font-size:10px; font-weight:700; color:var(--faint)}
+
+/* suggestion */
+.sug{border:1px solid var(--line); border-left:4px solid var(--red)}
+.sug .why{display:flex; align-items:center; justify-content:space-between; margin-bottom:9px}
+.sug .why .w1{display:flex; align-items:center; gap:7px; font-family:var(--fd); font-weight:700; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--red)}
+.sug .why a{font-size:10.5px; color:var(--faint); text-decoration:underline; cursor:pointer}
+.sug h4{font-family:var(--fd); font-weight:800; font-size:16px; letter-spacing:-.02em; margin-bottom:5px}
+.sug p{font-size:12.5px; color:var(--dim); line-height:1.6}
+.row-btn{display:flex; gap:8px; margin-top:13px}
+.b{flex:1; border-radius:12px; padding:11px; font-family:var(--fd); font-weight:700; font-size:12.5px; cursor:pointer; border:1px solid var(--line2); background:#fff; color:var(--ink); transition:.15s}
+.b:hover{border-color:var(--ink)}
+.b.pri{background:var(--red); border-color:var(--red); color:#fff}
+.b.pri:hover{background:#b6161f}
+.b.ink{background:var(--ink); border-color:var(--ink); color:#fff}
+.b:disabled{opacity:.55; cursor:default}
+
+/* services */
+.svc{display:flex; align-items:center; gap:13px; padding:13px 0; border-bottom:1px solid var(--line)}
+.svc:last-child{border:none}
+.svc .si{width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:var(--tint); border:1px solid var(--line); color:var(--ink)}
+.svc .st b{font-family:var(--fd); font-weight:700; font-size:13.5px; display:block}
+.svc .st span{font-size:11.5px; color:var(--dim)}
+.svc .ok{margin-left:auto; font-family:var(--fd); font-weight:700; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); display:flex; align-items:center; gap:5px; white-space:nowrap}
+.svc.add .si{background:var(--red-soft); border-color:var(--red-line); color:var(--red)}
+.svc.add .ok{color:var(--red)}
+.member{display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--line); font-size:12.5px}
+.member:last-child{border:none}
+.member .av{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--fd);font-weight:800;font-size:12px}
+.member b{font-weight:600}
+.member span{margin-left:auto;color:var(--faint);font-size:11px}
+
+/* move / scan */
+.scanbox{background:linear-gradient(160deg,#1d1a24,#131017); border:none; color:#fff; text-align:center; padding:20px 16px}
+.scanbox .win{width:158px;height:100px;margin:4px auto 0;border-radius:14px;border:2px dashed rgba(255,255,255,.3);position:relative;overflow:hidden;display:grid;place-items:center;background:rgba(255,255,255,.05)}
+.scanbox .win .laser{position:absolute;left:0;right:0;height:3px;background:var(--red);box-shadow:0 0 14px 2px var(--red);top:0;opacity:0}
+.scanbox.scanning .laser{animation:scan 1.25s ease-in-out infinite;opacity:1}
+@keyframes scan{0%{top:6%}50%{top:88%}100%{top:6%}}
+.scanbox h4{font-family:var(--fd);font-weight:800;font-size:15.5px;margin:13px 0 4px}
+.scanbox p{font-size:12px;color:#c9c4cf;line-height:1.55}
+.scanbox .res{display:none;margin-top:13px;padding-top:13px;border-top:1px solid rgba(255,255,255,.12);text-align:left}
+.scanbox .res.show{display:block;animation:rise .4s ease}
+.rr{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:#d8d4dd}
+.rr b{color:#fff}
+.rr.big{margin-top:4px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)}
+.rr.big b{font-family:var(--fd);font-size:19px;color:#7ce8ae}
+
+/* stepper */
+.step{display:flex;gap:13px;padding-bottom:16px;position:relative}
+.step:before{content:"";position:absolute;left:13px;top:28px;bottom:-2px;width:2px;background:var(--line)}
+.step:last-child{padding-bottom:2px}
+.step:last-child:before{display:none}
+.sd{width:28px;height:28px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-family:var(--fd);font-weight:800;font-size:12px;z-index:2;border:2px solid var(--line2);background:#fff;color:var(--faint)}
+.step.done .sd{background:var(--green);border-color:var(--green);color:#fff}
+.step.now .sd{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.7s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(213,32,42,.35)}50%{box-shadow:0 0 0 8px rgba(213,32,42,0)}}
+.step .tx b{font-family:var(--fd);font-weight:700;font-size:13px;display:block}
+.step .tx span{font-size:11.5px;color:var(--dim);line-height:1.5}
+
+/* bill */
+.bill-hero{display:flex;align-items:flex-end;justify-content:space-between}
+.bill-hero .amt{font-family:var(--fd);font-weight:900;font-size:38px;letter-spacing:-.04em;line-height:1}
+.bill-hero .due{text-align:right;font-size:11px;color:var(--dim);line-height:1.5}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.brow:last-child{border:none}
+.brow .bl{color:var(--dim)} .brow .bl b{color:var(--ink);font-weight:600}
+.brow .bv{font-family:var(--fd);font-weight:700}
+.brow.cr .bv,.brow.cr .bl{color:var(--green)}
+.brow.tot{border-top:2px solid var(--ink);margin-top:2px;padding-top:12px}
+.brow.tot .bl{font-family:var(--fd);font-weight:800;color:var(--ink);font-size:14px}
+.brow.tot .bv{font-size:18px}
+.note{border-radius:14px;padding:12px 14px;font-size:12px;line-height:1.55;display:flex;gap:10px;align-items:flex-start}
+.note.g{background:var(--green-soft);border:1px solid var(--green-line);color:#125e3b}
+.note.r{background:var(--red-soft);border:1px solid var(--red-line);color:#8f1d24}
+.note b{font-family:var(--fd)}
+
+/* promises */
+.prom{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.prom:last-child{border:none}
+.prom .pi{width:36px;height:36px;flex:0 0 auto;border-radius:11px;background:var(--red-soft);color:var(--red);display:grid;place-items:center}
+.prom .pt b{font-family:var(--fd);font-weight:700;font-size:13px;display:block;margin-bottom:2px}
+.prom .pt span{font-size:11.5px;color:var(--dim);line-height:1.55}
+
+/* nav */
+.nav{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(255,255,255,.9);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;align-items:flex-start;padding:9px 8px 0;z-index:50}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--faint);transition:.15s;padding-top:3px}
+.ni .nl{font-family:var(--fd);font-weight:700;font-size:9px;letter-spacing:.03em;text-transform:uppercase}
+.ni.on{color:var(--red)}
+.ni.mid{margin-top:-22px}
+.ni.mid .plus{width:52px;height:52px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 10px 22px -8px rgba(213,32,42,.55);transition:.15s}
+.ni.mid:active .plus{transform:scale(.94)}
+
+/* toast + sheet */
+.toasts{position:absolute;left:16px;right:16px;bottom:98px;z-index:80;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--ink);color:#fff;border-radius:14px;padding:12px 15px;font-size:12.5px;box-shadow:var(--sh);display:flex;gap:10px;align-items:center;opacity:0;transform:translateY(16px);animation:tst 3.2s ease forwards}
+.toast .ic{color:#8ee9b6}
+.toast b{font-family:var(--fd);font-weight:700}
+@keyframes tst{8%,86%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+.modal{position:absolute;inset:0;z-index:90;background:rgba(16,14,20,.5);backdrop-filter:blur(3px);display:none;align-items:flex-end}
+.modal.on{display:flex}
+.sheet{width:100%;background:var(--card);border-radius:26px 26px 0 0;padding:20px 20px 28px;animation:up .3s ease;max-height:82%;overflow-y:auto}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.grip{width:42px;height:4px;border-radius:4px;background:var(--line2);margin:0 auto 16px}
+.sheet h3{font-family:var(--fd);font-weight:900;font-size:19px;letter-spacing:-.02em;margin-bottom:5px}
+.sheet .ms{font-size:12.5px;color:var(--dim);line-height:1.6;margin-bottom:14px}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.kv span{color:var(--dim)} .kv b{font-family:var(--fd);font-weight:700}
+.foot{text-align:center;font-family:var(--fd);font-weight:600;font-size:9px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase;padding:16px 0 4px}
+.hrow2{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.hrow2 .hello{margin-top:0}
+.bell{position:relative;width:38px;height:38px;border-radius:12px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;box-shadow:var(--sh-sm);color:var(--ink);transition:.15s}
+.bell:hover{border-color:var(--ink)}
+.bell .bdot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.svc.tap,.member.tap{cursor:pointer}
+.n-item{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.55}
+.n-item:last-of-type{border:none}
+.n-item .ni-ic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center}
+.spd{font-family:var(--fd);font-weight:900;font-size:44px;letter-spacing:-.04em;text-align:center;padding:4px 0 2px}
+.spd small{font-size:13px;color:var(--faint);font-weight:700}
+.use{height:9px;border-radius:6px;background:var(--line);overflow:hidden;margin:8px 0 6px}
+.use i{display:block;height:100%;background:var(--red);border-radius:6px}
+.fx{display:flex;gap:10px;align-items:center;padding:9px 0;font-size:12.5px;color:var(--dim)}
+.fx .fxi{width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);display:grid;place-items:center;flex:0 0 auto;font-size:11px;font-family:var(--fd);font-weight:700;color:var(--faint)}
+.fx.ok{color:var(--ink)}
+.fx.ok .fxi{background:var(--green);border-color:var(--green);color:#fff}
+.fx.run .fxi{border-color:var(--red);border-top-color:transparent;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-bill" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4L10 21l-2-1.4L6 21z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.9c-.8.35-1 .9-1 1.7"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.8 12.4a9 9 0 0 1 12.4 0"/><path d="M9.2 15.8a4.5 4.5 0 0 1 5.6 0"/><path d="M12 19h.01"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="12.5" rx="2"/><path d="M8 21h8"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 7.7-7 9.8-4.1-2.1-7-5.4-7-9.8V5.8z"/><path d="m9 11.6 2 2 4-4"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L19.5 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M4 12h16"/></symbol>
+  <symbol id="i-door" viewBox="0 0 24 24"><path d="M4 21V3h9v18M4 21h12"/><path d="M14 12h6.5M18 9.5l2.5 2.5L18 14.5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5 13.6 9 19 10.5 13.6 12 12 17.5 10.4 12 5 10.5 10.4 9z"/><path d="M19 16.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L4 21l1.5-4.5A8.5 8.5 0 1 1 21 12z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 16v-5.2a6 6 0 1 0-12 0V16l-1.6 2.4h15.2z"/><path d="M10.3 20.6a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5V8h-4.5"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.5 17.5a8.5 8.5 0 1 1 15 0"/><path d="m12.6 13.4 3-4.4"/><circle cx="12" cy="14.5" r="1.6"/></symbol>
+</svg>
+
+<!-- judges' sidebar -->
+<aside class="aside">
+  <div class="k">Team B-Soc · iCreate 2026</div>
+  <h2>The strategy, in words a family uses.</h2>
+  <p>Customers never see our framework — they feel it. Every internal mechanism ships here as a plain-language promise.</p>
+  <a class="back" href="index.html">← Strategy suite</a>
+  <div class="map">
+    <div class="mh">Customer sees ← we call it</div>
+    <div class="mr"><b>"We'll cover your exit fees"</b><span>Unlock</span></div>
+    <div class="mr"><b>"We handle your whole move"</b><span>Switch Squad</span></div>
+    <div class="mr"><b>"Backup internet, built in"</b><span>Fail-Safe</span></div>
+    <div class="mr"><b>"Our promises" + 1-tap cancel</b><span>Charter</span></div>
+    <div class="mr"><b>"For your family, because…"</b><span>Cortex NBA</span></div>
+    <div class="mr"><b>"Fix my WiFi" self-serve</b><span>Channel productivity</span></div>
+  </div>
+</aside>
+
+<div id="fit">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="sbar"><div>9:41</div><div class="r"><span>▂▄▆</span><span>5G</span><span>▮▮▮</span></div></div>
+
+    <div class="stack">
+
+    <!-- ============ HOME ============ -->
+    <div class="view on" id="v-home">
+      <div class="hrow2"><p class="hello">Sunday, 19 July · The Mehta home</p><div class="bell" onclick="notifSheet()"><svg class="ic sm"><use href="#i-bell"/></svg><span class="bdot" id="bdot"></span></div></div>
+      <h1 class="h1">Good evening, Rajiv<em>.</em></h1>
+
+      <div class="card hero">
+        <span class="pill g" id="st-pill"><span class="dot"></span><span id="st-pill-t">Everything's running</span></span>
+        <h4 id="st-h">Your home is online</h4>
+        <p id="st-p">WiFi and mobile are both healthy. If your WiFi ever cuts out, your home switches to mobile internet on its own — it's part of your plan, not an extra.</p>
+        <div class="path">
+          <div class="pn live" id="p-wifi"><svg class="ic"><use href="#i-wifi"/></svg><div class="l">WiFi</div></div>
+          <span class="pathsep">⇄</span>
+          <div class="pn" id="p-mob"><svg class="ic"><use href="#i-phone"/></svg><div class="l">Mobile net</div></div>
+          <span class="pathsep">→</span>
+          <div class="pn live"><svg class="ic"><use href="#i-home"/></svg><div class="l">Your home</div></div>
+        </div>
+        <button class="linkbtn" id="st-btn" onclick="demoBackup()"><svg class="ic sm"><use href="#i-zap"/></svg><span id="st-btn-t">See how backup works</span></button>
+      </div>
+
+      <div class="glance">
+        <div class="gl"><div class="gv">₹1,529</div><div class="gl2">July bill · auto-pays Aug 5</div></div>
+        <div class="gv-wrap gl"><div class="gv">99.98<small>%</small></div><div class="gl2">online this month</div></div>
+        <div class="gl"><div class="gv">₹610</div><div class="gl2">saved every month vs separate plans</div></div>
+      </div>
+
+      <div class="sect"><h3>For your family</h3></div>
+      <div class="card sug">
+        <div class="why">
+          <span class="w1"><svg class="ic sm"><use href="#i-spark"/></svg>A thought for you</span>
+          <a onclick="whySheet()">Why this?</a>
+        </div>
+        <h4>You're paying for Netflix twice.</h4>
+        <p>Netflix already comes with your TV &amp; streaming pack. You can cancel the separate ₹649 one — nothing changes on your TV, and you keep the money.</p>
+        <div class="row-btn">
+          <button class="b" onclick="toast('i-check','Noted','We won\'t suggest this again.')">Dismiss</button>
+          <button class="b pri" onclick="toast('i-check','Done','We\'ve sent simple cancel steps to your phone.')">Show me how</button>
+        </div>
+      </div>
+
+      <div class="card sug" style="border-left-color:var(--ink)">
+        <div class="why">
+          <span class="w1" style="color:var(--ink)"><svg class="ic sm"><use href="#i-lock"/></svg>Worth knowing</span>
+          <a onclick="whySheet()">Why this?</a>
+        </div>
+        <h4>One step from locking your price till 2028.</h4>
+        <p>Add banking to your plan and your total bill can't go up for 24 months — in writing. Salary alerts and bill payments live in this app too.</p>
+        <div class="row-btn">
+          <button class="b" onclick="toast('i-check','Saved','We\'ll remind you next month.')">Maybe later</button>
+          <button class="b ink" onclick="addBanking()">Tell me more</button>
+        </div>
+      </div>
+      <div class="foot">Altura Home · Team B-Soc concept</div>
+    </div>
+
+    <!-- ============ SERVICES ============ -->
+    <div class="view" id="v-services">
+      <p class="hello">Your plan</p>
+      <h1 class="h1">Everything in one place<em>.</em></h1>
+
+      <div class="card">
+        <div class="svc tap" onclick="svcSheet('mobile')"><div class="si"><svg class="ic"><use href="#i-phone"/></svg></div><div class="st"><b>Mobile</b><span>2 numbers · unlimited calls &amp; data</span></div><div class="ok"><svg class="ic sm"><use href="#i-check"/></svg>Working</div></div>
+        <div class="svc tap" onclick="svcSheet('wifi')"><div class="si"><svg class="ic"><use href="#i-wifi"/></svg></div><div class="st"><b>Home WiFi</b><span>300 Mbps · backup included</span></div><div class="ok"><svg class="ic sm"><use href="#i-check"/></svg>Working</div></div>
+        <div class="svc tap" onclick="svcSheet('tv')"><div class="si"><svg class="ic"><use href="#i-tv"/></svg></div><div class="st"><b>TV &amp; streaming</b><span>Netflix, Prime + 12 more apps</span></div><div class="ok"><svg class="ic sm"><use href="#i-check"/></svg>Working</div></div>
+        <div class="svc add" id="svc-bank" onclick="addBanking()"><div class="si"><svg class="ic"><use href="#i-bank"/></svg></div><div class="st"><b>Banking</b><span>Not added — locks your price till 2028</span></div><div class="ok">Add →</div></div>
+      </div>
+
+      <div class="sect"><h3>Who's on the plan</h3><a onclick="toast('i-person','Invite sent','They can join from the link.')">+ Add someone</a></div>
+      <div class="card">
+        <div class="member tap" onclick="memberSheet('rajiv')"><div class="av">R</div><b>Rajiv</b><span>you · pays the bill</span></div>
+        <div class="member tap" onclick="memberSheet('anita')"><div class="av">A</div><b>Anita</b><span>manages TV apps</span></div>
+        <div class="member tap" onclick="memberSheet('ishaan')"><div class="av">I</div><b>Ishaan</b><span>data limits on</span></div>
+      </div>
+
+      <div class="sect"><h3>How reliable was your home?</h3></div>
+      <div class="card">
+        <div class="note g" style="margin-bottom:10px"><svg class="ic"><use href="#i-shield"/></svg><div><b>Online 99.98% of July.</b> Your WiFi blipped once on the 12th — backup carried everything for 41 seconds. No call dropped.</div></div>
+        <div class="kv"><span>Times backup stepped in</span><b>1</b></div>
+        <div class="kv"><span>Fastest switch</span><b>12 seconds</b></div>
+        <div class="kv" style="border:none"><span>Calls or payments lost</span><b>0</b></div>
+      </div>
+      <div class="foot">We publish this every month — good or bad</div>
+    </div>
+
+    <!-- ============ MOVE / ADD ============ -->
+    <div class="view" id="v-move">
+      <p class="hello">Add or move a service</p>
+      <h1 class="h1">Bring it home<em>.</em> We do the heavy lifting.</h1>
+
+      <div class="card scanbox" id="scanbox">
+        <div class="win"><div class="laser"></div><svg class="ic lg" style="color:#fff" id="scan-ic"><use href="#i-scan"/></svg></div>
+        <h4 id="scan-h">Stuck in an old contract?</h4>
+        <p id="scan-p">Take a photo of your current provider's bill. If there's an exit fee or a deposit you'd lose, we'll cover it — up to ₹5,000 back on your Altura bills.</p>
+        <div class="res" id="scan-res">
+          <div class="rr"><span>Your provider</span><b>Rival Fibre + SIM</b></div>
+          <div class="rr"><span>Exit fee on your contract</span><b>₹4,000</b></div>
+          <div class="rr"><span>Router deposit you'd lose</span><b>₹1,000</b></div>
+          <div class="rr big"><span>We'll give you back</span><b>₹5,000</b></div>
+        </div>
+        <button class="b pri" style="width:100%;margin-top:15px" id="scan-btn" onclick="scanBill()">Photograph my old bill</button>
+      </div>
+      <div class="note g" id="cov-note" style="display:none;margin-bottom:11px"><svg class="ic"><use href="#i-check"/></svg><div><b>Covered.</b> ₹5,000 comes back to you as credit spread across your next 12 bills. No deposit and no set-up fee on our side, ever.</div></div>
+
+      <div class="sect"><h3>Then we take over</h3></div>
+      <div class="card">
+        <div class="step done"><div class="sd"><svg class="ic sm"><use href="#i-check"/></svg></div><div class="tx"><b>Verify once, never again</b><span>One ID check covers every Altura service you'll ever add.</span></div></div>
+        <div class="step now" id="mv-1"><div class="sd">2</div><div class="tx"><b>New line first, old line after</b><span>We set up your Altura connection while the old one still works — you're never offline, not even for a day.</span></div></div>
+        <div class="step" id="mv-2"><div class="sd">3</div><div class="tx"><b>We return the old router</b><span>Our person collects it from your door and hands it back to your old provider.</span></div></div>
+        <div class="step" id="mv-3"><div class="sd">4</div><div class="tx"><b>We cancel for you</b><span>You sign one line; we do the cancelling. You never have to call them.</span></div></div>
+        <button class="b ink" style="width:100%;margin-top:14px" onclick="advanceMove()">Next step →</button>
+      </div>
+      <div class="foot">Most moves finish in 48 hours</div>
+    </div>
+
+    <!-- ============ BILL ============ -->
+    <div class="view" id="v-bill">
+      <p class="hello">July 2026</p>
+      <h1 class="h1">One bill, no surprises<em>.</em></h1>
+
+      <div class="card">
+        <div class="bill-hero">
+          <div class="amt">₹1,529</div>
+          <div class="due">auto-pays <b>Aug 5</b><br>taxes included</div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="brow"><span class="bl"><b>Mobile</b> · 2 numbers</span><span class="bv">₹898</span></div>
+          <div class="brow"><span class="bl"><b>Home WiFi</b> · 300 Mbps</span><span class="bv">₹599</span></div>
+          <div class="brow"><span class="bl"><b>TV &amp; streaming</b> · 14 apps</span><span class="bv">₹449</span></div>
+          <div class="brow cr"><span class="bl">Exit-fee cover · month 3 of 12</span><span class="bv">− ₹417</span></div>
+          <div class="brow tot"><span class="bl">You pay</span><span class="bv">₹1,529</span></div>
+        </div>
+      </div>
+
+      <div class="note g" style="margin-bottom:11px;cursor:pointer" onclick="lockSheet()"><svg class="ic"><use href="#i-lock"/></svg><div><b>This price is locked until July 2028.</b> While you keep three or more services, it cannot go up. Tap to see the full promise.</div></div>
+
+      <div class="card">
+        <div class="kv"><span>If you bought these separately</span><b>₹2,139 / month</b></div>
+        <div class="kv"><span>Your Altura price</span><b>₹1,529 / month</b></div>
+        <div class="kv" style="border:none"><span>You keep</span><b style="color:var(--green)">₹610 every month</b></div>
+      </div>
+
+      <div class="sect"><h3>Past bills</h3></div>
+      <div class="card">
+        <div class="brow"><span class="bl"><b>June</b> · paid Jun 5</span><span class="bv" style="display:flex;gap:10px;align-items:baseline">₹1,529 <a style="font-size:11px;color:var(--red);cursor:pointer;font-family:var(--fb);font-weight:600" onclick="toast('i-check','Receipt sent','The June receipt is in your email.')">Receipt</a></span></div>
+        <div class="brow"><span class="bl"><b>May</b> · paid May 5</span><span class="bv" style="display:flex;gap:10px;align-items:baseline">₹1,529 <a style="font-size:11px;color:var(--red);cursor:pointer;font-family:var(--fb);font-weight:600" onclick="toast('i-check','Receipt sent','The May receipt is in your email.')">Receipt</a></span></div>
+        <div class="brow"><span class="bl"><b>April</b> · before your exit-fee cover began</span><span class="bv">₹1,946</span></div>
+      </div>
+
+      <button class="b pri" style="width:100%" onclick="toast('i-check','Paid','July settled. Receipt is in your email.')">Pay now instead</button>
+      <div class="foot">Same price every month · no year-two jump</div>
+    </div>
+
+    <!-- ============ HELP ============ -->
+    <div class="view" id="v-help">
+      <p class="hello">Help &amp; promises</p>
+      <h1 class="h1">You're free to leave. That's the point<em>.</em></h1>
+
+      <div class="card">
+        <div class="prom"><div class="pi"><svg class="ic"><use href="#i-door"/></svg></div><div class="pt"><b>Cancel anything in one tap</b><span>No retention call, no hold music, no "let me offer you a deal." Tap, done.</span></div></div>
+        <div class="prom"><div class="pi"><svg class="ic"><use href="#i-lock"/></svg></div><div class="pt"><b>Your price can't creep up</b><span>Locked until July 2028 while you keep 3+ services. No year-two surprise.</span></div></div>
+        <div class="prom"><div class="pi"><svg class="ic"><use href="#i-grid"/></svg></div><div class="pt"><b>Drop one, keep the rest</b><span>Cancel WiFi and your mobile price stays the same for 90 days while you decide.</span></div></div>
+        <div class="prom"><div class="pi"><svg class="ic"><use href="#i-spark"/></svg></div><div class="pt"><b>Loyalty earns our best price</b><span>New customers never get a better deal than you. If prices drop, yours drops.</span></div></div>
+      </div>
+
+      <div class="sect"><h3>Don't believe us? Try it</h3></div>
+      <div class="card">
+        <p style="font-size:12.5px;color:var(--dim);line-height:1.6;margin-bottom:12px">This button is real. One tap cancels your WiFi — no wall, no guilt trip.</p>
+        <button class="b" style="width:100%" onclick="cancelDemo()">Cancel Home WiFi</button>
+      </div>
+
+      <div class="sect"><h3>Something not working?</h3></div>
+      <div class="card">
+        <p style="font-size:12.5px;color:var(--dim);line-height:1.6;margin-bottom:12px">Most WiFi problems fix themselves in under a minute. Let the app try before you wait for anyone.</p>
+        <button class="b ink" style="width:100%" onclick="fixFlow()">Fix my WiFi</button>
+      </div>
+
+      <div class="sect"><h3>Talk to a person</h3></div>
+      <div class="card">
+        <div class="svc" style="cursor:pointer" onclick="toast('i-chat','Connecting','Meera will be with you in about 2 minutes.')"><div class="si"><svg class="ic"><use href="#i-chat"/></svg></div><div class="st"><b>Chat with us</b><span>Real humans · about 2 min wait right now</span></div><div class="ok">Start</div></div>
+        <div class="svc" style="cursor:pointer" onclick="toast('i-person','Booked','We\'ll call you tomorrow between 10–11 am.')"><div class="si"><svg class="ic"><use href="#i-person"/></svg></div><div class="st"><b>Book a call</b><span>Pick a time, we ring you</span></div><div class="ok">Book</div></div>
+      </div>
+      <div class="foot">Every promise here is in your contract too</div>
+    </div>
+
+    </div><!-- /stack -->
+
+    <!-- NAV -->
+    <div class="nav">
+      <div class="ni on" data-v="home" onclick="go('home')"><svg class="ic"><use href="#i-home"/></svg><div class="nl">Home</div></div>
+      <div class="ni" data-v="services" onclick="go('services')"><svg class="ic"><use href="#i-grid"/></svg><div class="nl">Services</div></div>
+      <div class="ni mid" data-v="move" onclick="go('move')"><div class="plus"><svg class="ic lg"><use href="#i-plus"/></svg></div><div class="nl">Add</div></div>
+      <div class="ni" data-v="bill" onclick="go('bill')"><svg class="ic"><use href="#i-bill"/></svg><div class="nl">Bill</div></div>
+      <div class="ni" data-v="help" onclick="go('help')"><svg class="ic"><use href="#i-help"/></svg><div class="nl">Help</div></div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+    <div class="modal" id="modal" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+
+  </div>
+</div>
+</div><!-- /fit -->
+
+<script>
+/* nav */
+function go(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.getElementById('v-'+v).classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
+  document.getElementById('v-'+v).scrollTop=0;
+}
+/* toast */
+function toast(icon,title,msg){
+  const w=document.getElementById('toasts'), el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML='<svg class="ic"><use href="#'+icon+'"/></svg><div><b>'+title+'</b>'+(msg?(' · '+msg):'')+'</div>';
+  w.appendChild(el); setTimeout(()=>el.remove(),3200);
+}
+/* sheet */
+function openSheet(html){document.getElementById('sheet').innerHTML='<div class="grip"></div>'+html;document.getElementById('modal').classList.add('on');}
+function closeSheet(){document.getElementById('modal').classList.remove('on');}
+window.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+
+/* HOME · backup demo */
+let backupOn=false;
+function demoBackup(){
+  const pill=document.getElementById('st-pill'),pt=document.getElementById('st-pill-t'),
+        h=document.getElementById('st-h'),p=document.getElementById('st-p'),
+        wifi=document.getElementById('p-wifi'),mob=document.getElementById('p-mob'),
+        bt=document.getElementById('st-btn-t'),btn=document.getElementById('st-btn');
+  if(backupOn){
+    pill.className='pill g';pt.textContent="Everything's running";
+    h.textContent='Your home is online';
+    p.textContent="WiFi and mobile are both healthy. If your WiFi ever cuts out, your home switches to mobile internet on its own — it's part of your plan, not an extra.";
+    wifi.className='pn live';mob.className='pn';bt.textContent='See how backup works';
+    backupOn=false;return;
+  }
+  btn.disabled=true;bt.textContent='WiFi just went down…';
+  pill.className='pill a';pt.textContent='Demo · WiFi cut';
+  wifi.className='pn down';h.textContent='Hold on —';p.textContent='Switching your home to mobile internet…';
+  setTimeout(()=>{
+    mob.className='pn live';pill.className='pill g';pt.textContent='Back online · via mobile';
+    h.textContent='Switched in 12 seconds';
+    p.textContent="That's what happens in a real outage — automatically. Video calls keep going, payments keep working, and you'll see it in your monthly report.";
+    bt.textContent='Finish demo';btn.disabled=false;backupOn=true;
+    toast('i-zap','Backup kicked in','12 seconds. Nothing dropped.');
+  },1600);
+}
+
+/* HOME/SERVICES · banking */
+function addBanking(){
+  openSheet(
+    '<h3>Banking, added to your plan</h3>'+
+    '<div class="ms">Your salary account, bill payments and UPI — inside this app, on the same bill.</div>'+
+    '<div class="kv"><span>Extra monthly cost</span><b>₹0</b></div>'+
+    '<div class="kv"><span>Your price locked until</span><b>July 2028</b></div>'+
+    '<div class="kv" style="border:none"><span>Set-up</span><b>2 minutes, no branch visit</b></div>'+
+    '<button class="b pri" style="width:100%;margin-top:16px" onclick="bankDone()">Add banking</button>'+
+    '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Not now</button>'
+  );
+}
+function bankDone(){
+  closeSheet();
+  const s=document.getElementById('svc-bank');
+  s.classList.remove('add');s.onclick=null;
+  s.querySelector('span').textContent='Salary account · price now locked';
+  s.querySelector('.ok').innerHTML='<svg class="ic sm"><use href="#i-check"/></svg>Working';
+  toast('i-lock','Price locked','Your bill can\'t go up until July 2028.');
+}
+
+/* MOVE · scan */
+let scanned=false;
+function scanBill(){
+  if(scanned)return;
+  const box=document.getElementById('scanbox'),btn=document.getElementById('scan-btn');
+  box.classList.add('scanning');btn.disabled=true;btn.textContent='Reading your bill…';
+  document.getElementById('scan-h').textContent='One second…';
+  document.getElementById('scan-p').textContent='Looking for exit fees and deposits on your bill. The photo stays on your phone.';
+  setTimeout(()=>{
+    box.classList.remove('scanning');
+    document.getElementById('scan-ic').innerHTML='<use href="#i-check"/>';
+    document.getElementById('scan-h').textContent='Found it — and it\'s on us.';
+    document.getElementById('scan-p').textContent='Here\'s what leaving your old provider would cost you, and what we\'ll cover:';
+    document.getElementById('scan-res').classList.add('show');
+    btn.textContent='Cover my ₹5,000';btn.disabled=false;
+    btn.setAttribute('onclick','coverFees()');scanned=true;
+  },1900);
+}
+function coverFees(){
+  document.getElementById('cov-note').style.display='flex';
+  const btn=document.getElementById('scan-btn');
+  btn.textContent='✓ Covered';btn.disabled=true;
+  toast('i-check','₹5,000 covered','Credited over your next 12 bills.');
+}
+
+/* MOVE · stepper */
+const mv=['mv-1','mv-2','mv-3'];let mvAt=0;
+const mvMsgs=['Your new line is live — the old one is still on','Router pickup booked for tomorrow','Cancellation sent. You\'re done — never call them again'];
+function advanceMove(){
+  if(mvAt>=mv.length){toast('i-check','Move complete','Welcome home.');return;}
+  const cur=document.getElementById(mv[mvAt]);
+  cur.classList.remove('now');cur.classList.add('done');
+  cur.querySelector('.sd').innerHTML='<svg class="ic sm"><use href="#i-check"/></svg>';
+  toast('i-check','Step done',mvMsgs[mvAt]);
+  mvAt++;
+  if(mvAt<mv.length){const nx=document.getElementById(mv[mvAt]);nx.classList.add('now');}
+}
+
+/* HELP · cancel demo */
+function cancelDemo(){
+  openSheet(
+    '<h3>WiFi cancelled. That\'s it.</h3>'+
+    '<div class="ms">No call, no counter-offer, no hold music — the way it should be.</div>'+
+    '<div class="kv"><span>Cancelled</span><b>Home WiFi · 300 Mbps</b></div>'+
+    '<div class="kv"><span>Your mobile &amp; TV prices</span><b>Unchanged for 90 days</b></div>'+
+    '<div class="kv" style="border:none"><span>Final charge</span><b>None — billed to today only</b></div>'+
+    '<button class="b pri" style="width:100%;margin-top:16px" onclick="closeSheet();toast(\'i-check\',\'WiFi restored\',\'No penalty, no questions.\')">Actually, keep it</button>'+
+    '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>'
+  );
+  toast('i-door','Cancelled in one tap','Other prices held for 90 days.');
+}
+
+/* why-this sheet */
+/* why-this sheet */
+function whySheet(){
+  openSheet(
+    '<h3>Why you see suggestions</h3>'+
+    '<div class="ms">We look at the services on your Altura bill and how your home uses them — like a WiFi outage or a duplicate subscription. We never read messages or listen to calls, and we\'ll suggest cancelling things you don\'t need, even when it saves you money instead of us.</div>'+
+    '<button class="b" style="width:100%" onclick="closeSheet();toast(\'i-check\',\'Turned off\',\'You can switch suggestions back on in Settings.\')">Turn suggestions off</button>'+
+    '<button class="b ink" style="width:100%;margin-top:8px" onclick="closeSheet()">Keep them on</button>'
+  );
+}
+
+/* notifications */
+function notifSheet(){
+  const d=document.getElementById('bdot'); if(d) d.style.display='none';
+  openSheet(
+    '<h3>What happened lately</h3>'+
+    '<div class="ms">Only things worth telling you — no offers dressed up as alerts.</div>'+
+    '<div class="n-item"><div class="ni-ic" style="background:var(--green-soft);color:var(--green)"><svg class="ic sm"><use href="#i-zap"/></svg></div><div><b>Backup stepped in</b> — WiFi blipped on the 12th; mobile internet carried your home for 41 seconds.</div></div>'+
+    '<div class="n-item"><div class="ni-ic" style="background:var(--tint);color:var(--ink)"><svg class="ic sm"><use href="#i-bill"/></svg></div><div><b>July bill ready</b> — ₹1,529, same as last month. Auto-pays Aug 5.</div></div>'+
+    '<div class="n-item"><div class="ni-ic" style="background:var(--red-soft);color:var(--red)"><svg class="ic sm"><use href="#i-lock"/></svg></div><div><b>One step from a price lock</b> — add banking and your bill cannot rise until 2028.</div></div>'+
+    '<button class="b" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>'
+  );
+}
+
+/* service detail sheets */
+function svcSheet(k){
+  if(k==='mobile'){
+    openSheet(
+      '<h3>Mobile · 2 numbers</h3>'+
+      '<div class="ms">Unlimited calls and data on both numbers. Nothing to top up, ever.</div>'+
+      '<div class="kv"><span>Rajiv · 98•••• 2210</span><b>42 GB this month</b></div>'+
+      '<div class="kv"><span>Anita · 98•••• 7734</span><b>28 GB this month</b></div>'+
+      '<div class="kv" style="border:none"><span>Speed cap</span><b>None</b></div>'+
+      '<button class="b ink" style="width:100%;margin-top:14px" onclick="closeSheet();toast(\'i-check\',\'Roaming on\',\'Active for 10 days across 80+ countries.\')">Going abroad? Add roaming</button>'+
+      '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>');
+  } else if(k==='wifi'){
+    openSheet(
+      '<h3>Home WiFi</h3>'+
+      '<div class="ms">300 Mbps fibre, with mobile backup built in.</div>'+
+      '<div class="spd" id="spd">—<small> Mbps</small></div>'+
+      '<button class="b pri" style="width:100%;margin-top:6px" id="spd-btn" onclick="speedTest()">Run a speed check</button>'+
+      '<button class="b" style="width:100%;margin-top:8px" onclick="restartRouter(this)"><span style="display:inline-flex;align-items:center;gap:7px"><svg class="ic sm"><use href="#i-refresh"/></svg>Restart my router</span></button>'+
+      '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet();toast(\'i-check\',\'Link sent\',\'Guest WiFi shared — valid for 24 hours.\')">Share guest WiFi</button>');
+  } else {
+    openSheet(
+      '<h3>TV &amp; streaming</h3>'+
+      '<div class="ms">14 apps included in your pack — sign in once with your Altura number.</div>'+
+      '<div class="kv"><span>Netflix</span><b>Included</b></div>'+
+      '<div class="kv"><span>Prime Video</span><b>Included</b></div>'+
+      '<div class="kv"><span>JioHotstar</span><b>Included</b></div>'+
+      '<div class="kv" style="border:none"><span>+ 11 more</span><b>Included</b></div>'+
+      '<button class="b" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>');
+  }
+}
+
+/* speed test */
+let spdT=null;
+function speedTest(){
+  const el=document.getElementById('spd'), btn=document.getElementById('spd-btn');
+  if(!el||!btn) return;
+  btn.disabled=true; btn.textContent='Checking…';
+  clearInterval(spdT); let v=0;
+  spdT=setInterval(()=>{
+    if(!document.getElementById('spd')){ clearInterval(spdT); return; }
+    v=Math.min(287, v+Math.ceil((287-v)*0.14)+3);
+    el.innerHTML=v+'<small> Mbps</small>';
+    if(v>=287){
+      clearInterval(spdT);
+      btn.disabled=false; btn.textContent='Great — run it again';
+      toast('i-gauge','287 Mbps','Plenty for 4K, calls and gaming at once.');
+    }
+  },60);
+}
+
+/* remote router restart */
+function restartRouter(b){
+  const txt=b.querySelector('span').lastChild;
+  b.disabled=true; txt.textContent='Restarting… lights will blink';
+  setTimeout(()=>{
+    if(!document.body.contains(b)) return;
+    b.disabled=false; txt.textContent='Restart my router';
+    toast('i-check','Router restarted','Back to full speed.');
+  },2200);
+}
+
+/* family member sheets */
+const paused={ishaan:false};
+function memberSheet(k){
+  if(k==='ishaan'){
+    openSheet(
+      '<h3>Ishaan</h3>'+
+      '<div class="ms">Daily data limit is on — his internet pauses after 2 GB, and at bedtime.</div>'+
+      '<div style="font-size:12px;color:var(--dim)">Used today</div>'+
+      '<div class="use"><i style="width:65%"></i></div>'+
+      '<div style="font-size:11.5px;color:var(--faint);margin-bottom:6px">1.3 GB of 2 GB · resets at midnight</div>'+
+      '<div class="kv"><span>Bedtime pause</span><b>10:30 pm – 6:30 am</b></div>'+
+      '<button class="b ink" style="width:100%;margin-top:14px" id="pz" onclick="pauseNet()"></button>'+
+      '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>');
+    document.getElementById('pz').textContent=(paused.ishaan?'Resume his internet':'Pause his internet now');
+  } else if(k==='anita'){
+    openSheet(
+      '<h3>Anita</h3>'+
+      '<div class="ms">Manages the TV apps and profiles. Unlimited data, no limits set.</div>'+
+      '<div class="kv"><span>This month</span><b>28 GB</b></div>'+
+      '<div class="kv" style="border:none"><span>Controls</span><b>TV &amp; streaming admin</b></div>'+
+      '<button class="b" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>');
+  } else {
+    openSheet(
+      '<h3>Rajiv (you)</h3>'+
+      '<div class="ms">Plan owner — you approve bills, add people and set limits.</div>'+
+      '<div class="kv"><span>This month</span><b>42 GB</b></div>'+
+      '<div class="kv" style="border:none"><span>Role</span><b>Pays the bill · full controls</b></div>'+
+      '<button class="b" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>');
+  }
+}
+function pauseNet(){
+  paused.ishaan=!paused.ishaan;
+  const b=document.getElementById('pz');
+  if(b) b.textContent=(paused.ishaan?'Resume his internet':'Pause his internet now');
+  toast(paused.ishaan?'i-pause':'i-check',
+        paused.ishaan?'Paused for Ishaan':'Back online',
+        paused.ishaan?'His devices are offline until you resume.':'His devices are connected again.');
+}
+
+/* price promise certificate */
+function lockSheet(){
+  openSheet(
+    '<h3>Your price promise</h3>'+
+    '<div class="ms">This is part of your contract — not a limited-time offer.</div>'+
+    '<div class="kv"><span>Locked amount</span><b>₹1,946 / month before credits</b></div>'+
+    '<div class="kv"><span>Locked until</span><b>July 2028</b></div>'+
+    '<div class="kv"><span>Condition</span><b>Keep any 3+ services</b></div>'+
+    '<div class="kv" style="border:none"><span>If our prices drop</span><b>Yours drops too</b></div>'+
+    '<button class="b" style="width:100%;margin-top:14px" onclick="closeSheet();toast(\'i-check\',\'Sent\',\'A copy of the promise is in your email.\')">Email me a copy</button>'+
+    '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>');
+}
+
+/* fix my wifi — guided self-heal */
+function fixFlow(){
+  openSheet(
+    '<h3>Let\'s fix it</h3>'+
+    '<div class="ms">Checking things from our side first — about 20 seconds.</div>'+
+    '<div class="fx run" id="fx1"><div class="fxi"></div>Checking your line from the exchange…</div>'+
+    '<div class="fx" id="fx2"><div class="fxi">2</div>Testing your router…</div>'+
+    '<div class="fx" id="fx3"><div class="fxi">3</div>Restarting it remotely…</div>'+
+    '<div id="fx-done" style="display:none">'+
+      '<div class="note g" style="margin-top:10px"><svg class="ic"><use href="#i-check"/></svg><div><b>Fixed.</b> Your router restarted and speeds are back to normal. If it acts up again, we will send someone.</div></div>'+
+      '<button class="b" style="width:100%;margin-top:12px" onclick="closeSheet()">Done</button>'+
+      '<button class="b" style="width:100%;margin-top:8px" onclick="bookTech()">Still broken — book a visit</button>'+
+    '</div>');
+  const ok=id=>{const e=document.getElementById(id); if(!e) return false; e.className='fx ok'; e.querySelector('.fxi').innerHTML='<svg class="ic sm"><use href="#i-check"/></svg>'; return true;};
+  const run=id=>{const e=document.getElementById(id); if(!e) return; e.className='fx run'; e.querySelector('.fxi').innerHTML='';};
+  setTimeout(()=>{ if(ok('fx1')) run('fx2'); },1400);
+  setTimeout(()=>{ if(ok('fx2')) run('fx3'); },2800);
+  setTimeout(()=>{ if(ok('fx3')){ const d=document.getElementById('fx-done'); if(d) d.style.display='block'; } },4400);
+}
+function bookTech(){
+  openSheet(
+    '<h3>Book a visit</h3>'+
+    '<div class="ms">No call centre. Pick a slot and a technician comes to you — free.</div>'+
+    '<button class="b" style="width:100%" onclick="closeSheet();toast(\'i-check\',\'Booked\',\'Tomorrow 10–11 am. You will get a text when they are close.\')">Tomorrow · 10–11 am</button>'+
+    '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet();toast(\'i-check\',\'Booked\',\'Tomorrow 4–5 pm. You will get a text when they are close.\')">Tomorrow · 4–5 pm</button>'+
+    '<button class="b" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+
+/* fit phone to viewport — no manual zooming needed */
+const PHONE_W=392, PHONE_H=832;
+function fitPhone(){
+  const pad=20;
+  const vw=document.documentElement.clientWidth, vh=window.innerHeight;
+  const sidebarVisible=vw>=1120;                      // matches the .aside media query
+  const availW=vw-pad*2-(sidebarVisible?270+48:0);    // sidebar width + flex gap
+  const availH=vh-pad*2;
+  const s=Math.min(1, availH/PHONE_H, availW/PHONE_W);
+  const ph=document.querySelector('.phone'), fit=document.getElementById('fit');
+  ph.style.transform='scale('+s+')';
+  fit.style.width=(PHONE_W*s)+'px';
+  fit.style.height=(PHONE_H*s)+'px';
+}
+window.addEventListener('resize',fitPhone);
+fitPhone();
+</script>
+</body>
+</html>
